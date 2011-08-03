@@ -27,9 +27,7 @@ module EM::Rserve
 
     XT_ARRAY_INT = 32 
     XT_ARRAY_DOUBLE = 33 
-    XT_ARRAY_INT = 32
 
-    XT_ARRAY_DOUBLE = 33 
     XT_ARRAY_STR = 34 
     XT_ARRAY_BOOL_UA = 35 
     XT_ARRAY_BOOL = 36 
@@ -84,10 +82,22 @@ module EM::Rserve
       class NodesArray < Node
       end
 
+      class String < Node
+        code XT_STR
+        def interpret(dat, len)
+          val, padding = dat.split("\0", 2)
+          val
+        end
+      end
+
+      class SymName < String
+        code XT_SYMNAME
+      end
+
       class ArrayString < NodesArray
         code XT_ARRAY_STR
         def interpret(dat, len)
-          ary = dat.split("\0")
+          ary = dat.slice(0, len).split("\0")
           return ary if ary.empty?
           ary.pop if ary.last.tr("\1",'').empty?
           ary
@@ -105,6 +115,21 @@ module EM::Rserve
         code XT_ARRAY_DOUBLE
         def interpret(dat, len)
           dat.unpack('d' * (len/8))
+        end
+      end
+
+      class NodesList < Node
+      end
+
+      class ListTag < NodesList
+        code XT_LIST_TAG
+        def interpret(dat, len)
+          ary = []
+          until dat.empty? #XXX may stop earlier
+            val, read, dat = Sexp.decode_nodes(dat)
+            ary << val
+          end
+          ary
         end
       end
     end
@@ -128,24 +153,33 @@ module EM::Rserve
       self.constants.find{|c| self.const_get(c) == type}
     end
 
-    def self.decode_node(type, flags, buffer, len=nil)
-      p xt_type_sym(type)
+    def self.decode_node(type, buffer)
+      p [xt_type_sym(type), "0x%02x" % type, buffer.size, buffer]
       klass = Node.class_for_type(type)
       if klass
-        klass.new.interpret(buffer, len || buffer.length)
+        node = klass.new
+        val = node.interpret(buffer, buffer.size)
+        p val
+        node
       else
         raise RuntimeError, "no Node to decode type #{type}"
       end
     end
 
     def self.decode_nodes(buffer)
+      ptr = 0
+      read  = 0
       head, buffer = buffer.unpack('Va*')
       type, flags, len = head_parameter(head)
       if flags[:attr]
         p flags
+        attrs, read, buffer = decode_nodes(buffer)
       end
+
       #if rexp attr is set there's a 4bytes REXP attr
-      p decode_node(type, flags, buffer, len)
+      node = decode_node(type, buffer)
+
+      [node, len, buffer.slice(len .. -1)]
     end
   end
 end
