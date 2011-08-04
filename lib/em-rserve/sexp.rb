@@ -36,6 +36,14 @@ module EM::Rserve
     XT_UNKNOWN = 48
 
     class Node
+      attr_accessor :attribute
+      attr_accessor :children
+
+      def initialize
+        @children = []
+        @attribute = nil
+      end
+
       class << self
         def code(val=nil)
           if val
@@ -135,6 +143,7 @@ module EM::Rserve
             val, dat = Sexp.decode_nodes(dat)
             ary << val
           end
+          @children = ary
           ary
         end
       end
@@ -142,7 +151,8 @@ module EM::Rserve
 
     def self.parse(dat)
       obj = self.new
-      decode_nodes(dat)
+      tree = decode_nodes(dat)
+      p tree
       obj
     end
 
@@ -166,7 +176,6 @@ module EM::Rserve
       if klass
         node = klass.new
         val = node.interpret(buffer, buffer.size)
-        p val
         node
       else
         raise RuntimeError, "no Node to decode type #{type}"
@@ -178,11 +187,11 @@ module EM::Rserve
       head, buffer = buffer.unpack('Va*')
       type, flags, len = head_parameter(head)
 
-      if flags[:attr]
-        attrs, buffer = decode_nodes(buffer)
-      end
+      attrs, buffer = decode_nodes(buffer) if flags[:attr]
 
       node = decode_node(type, buffer.slice(0, len))
+
+      node.attribute = attrs if attrs
 
       [node, buffer.slice(len .. -1)]
     end
