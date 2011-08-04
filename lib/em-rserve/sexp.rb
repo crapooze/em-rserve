@@ -193,7 +193,7 @@ module EM::Rserve
         code XT_LANG_NOTAG
       end
 
-      class Vector < Node
+      class Vector < ParentNode
         code XT_VECTOR
       end
 
