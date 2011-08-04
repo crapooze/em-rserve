@@ -73,10 +73,16 @@ module EM::Rserve
 
       class Int < Node
         code XT_INT
+        def interpret(dat, len)
+          dat.unpack('i').first
+        end
       end
 
       class Double < Node
         code XT_DOUBLE
+        def interpret(dat, len)
+          dat.unpack('d').first
+        end
       end
 
       class NodesArray < Node
@@ -126,7 +132,7 @@ module EM::Rserve
         def interpret(dat, len)
           ary = []
           until dat.empty? #XXX may stop earlier
-            val, read, dat = Sexp.decode_nodes(dat)
+            val, dat = Sexp.decode_nodes(dat)
             ary << val
           end
           ary
@@ -153,6 +159,7 @@ module EM::Rserve
       self.constants.find{|c| self.const_get(c) == type}
     end
 
+    # Decodes a buffer given a type of node
     def self.decode_node(type, buffer)
       p [xt_type_sym(type), "0x%02x" % type, buffer.size, buffer]
       klass = Node.class_for_type(type)
@@ -166,20 +173,18 @@ module EM::Rserve
       end
     end
 
+    # Decodes a buffer reading starting with a header
     def self.decode_nodes(buffer)
-      ptr = 0
-      read  = 0
       head, buffer = buffer.unpack('Va*')
       type, flags, len = head_parameter(head)
+
       if flags[:attr]
-        p flags
-        attrs, read, buffer = decode_nodes(buffer)
+        attrs, buffer = decode_nodes(buffer)
       end
 
-      #if rexp attr is set there's a 4bytes REXP attr
-      node = decode_node(type, buffer)
+      node = decode_node(type, buffer.slice(0, len))
 
-      [node, len, buffer.slice(len .. -1)]
+      [node, buffer.slice(len .. -1)]
     end
   end
 end
