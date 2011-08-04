@@ -68,27 +68,27 @@ module EM::Rserve
         map[type]
       end
 
-      def interpret(dat, len)
+      def interpret(dat)
       end
 
       class Null < Node
         code XT_BOOL
 
-        def interpret(dat, len)
+        def interpret(dat)
           nil
         end
       end
 
       class Int < Node
         code XT_INT
-        def interpret(dat, len)
+        def interpret(dat)
           dat.unpack('i').first
         end
       end
 
       class Double < Node
         code XT_DOUBLE
-        def interpret(dat, len)
+        def interpret(dat)
           dat.unpack('d').first
         end
       end
@@ -98,7 +98,7 @@ module EM::Rserve
 
       class String < Node
         code XT_STR
-        def interpret(dat, len)
+        def interpret(dat)
           val, padding = dat.split("\0", 2)
           val
         end
@@ -110,8 +110,8 @@ module EM::Rserve
 
       class ArrayString < NodesArray
         code XT_ARRAY_STR
-        def interpret(dat, len)
-          ary = dat.slice(0, len).split("\0")
+        def interpret(dat)
+          ary = dat.split("\0")
           return ary if ary.empty?
           ary.pop if ary.last.tr("\1",'').empty?
           ary
@@ -120,15 +120,15 @@ module EM::Rserve
 
       class ArrayInt < NodesArray
         code XT_ARRAY_INT
-        def interpret(dat, len)
-          dat.unpack('V' * (len/4))
+        def interpret(dat)
+          dat.unpack('V' * (dat.size/4))
         end
       end
 
       class ArrayDouble < NodesArray
         code XT_ARRAY_DOUBLE
-        def interpret(dat, len)
-          dat.unpack('d' * (len/8))
+        def interpret(dat)
+          dat.unpack('d' * (dat.size/8))
         end
       end
 
@@ -137,7 +137,7 @@ module EM::Rserve
 
       class ListTag < NodesList
         code XT_LIST_TAG
-        def interpret(dat, len)
+        def interpret(dat)
           ary = []
           until dat.empty? #XXX may stop earlier
             val, dat = Sexp.decode_nodes(dat)
@@ -175,7 +175,7 @@ module EM::Rserve
       klass = Node.class_for_type(type)
       if klass
         node = klass.new
-        val = node.interpret(buffer, buffer.size)
+        val = node.interpret(buffer)
         node
       else
         raise RuntimeError, "no Node to decode type #{type}"
@@ -183,6 +183,9 @@ module EM::Rserve
     end
 
     # Decodes a buffer reading starting with a header
+    # returns an array of two elements:
+    # - the new, interpreted Node
+    # - the remainder of the buffer
     def self.decode_nodes(buffer)
       head, buffer = buffer.unpack('Va*')
       type, flags, len = head_parameter(head)
