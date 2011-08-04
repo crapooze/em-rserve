@@ -71,6 +71,12 @@ module EM::Rserve
       def interpret(dat)
       end
 
+      class Root < Node
+        def interpret(dat)
+          @children = Sexp.decode_nodes_array(dat)
+        end
+      end
+
       class Null < Node
         code XT_BOOL
 
@@ -133,27 +139,48 @@ module EM::Rserve
       end
 
       class NodesList < Node
+        def interpret(dat)
+          @children = Sexp.decode_nodes_array(dat)
+        end
       end
 
       class ListTag < NodesList
         code XT_LIST_TAG
+      end
+
+      class NodesLang < Node
         def interpret(dat)
-          ary = []
-          until dat.empty? #XXX may stop earlier
-            val, dat = Sexp.decode_nodes(dat)
-            ary << val
-          end
-          @children = ary
-          ary
+          @children = Sexp.decode_nodes_array(dat)
+        end
+      end
+
+      class LangTag < NodesLang
+        code XT_LANG_TAG
+      end
+
+      class LangTag < NodesLang
+        code XT_LANG_NOTAG
+      end
+
+
+      class Vector < Node
+        code XT_VECTOR
+      end
+
+      class Raw < Node
+        code XT_RAW
+      end
+
+      class Closure < Node
+        code XT_CLOS 
+        def interpret(dat)
+          @children = Sexp.decode_nodes_array(dat)
         end
       end
     end
 
     def self.parse(dat)
-      obj = self.new
-      tree = decode_nodes(dat)
-      p tree
-      obj
+      Node::Root.new.interpret(dat)
     end
 
     def self.head_parameter(head)
@@ -169,13 +196,19 @@ module EM::Rserve
       self.constants.find{|c| self.const_get(c) == type}
     end
 
+    # debugging function
+    def self.announce(str)
+       puts "A:#{str}"
+    end
+
     # Decodes a buffer given a type of node
     def self.decode_node(type, buffer)
-      p [xt_type_sym(type), "0x%02x" % type, buffer.size, buffer]
+      announce [xt_type_sym(type), "0x%02x" % type, buffer.size, buffer].inspect
       klass = Node.class_for_type(type)
       if klass
         node = klass.new
         val = node.interpret(buffer)
+        announce val.inspect
         node
       else
         raise RuntimeError, "no Node to decode type #{type}"
@@ -189,8 +222,11 @@ module EM::Rserve
     def self.decode_nodes(buffer)
       head, buffer = buffer.unpack('Va*')
       type, flags, len = head_parameter(head)
-
-      attrs, buffer = decode_nodes(buffer) if flags[:attr]
+      #announce "reading: #{len}"
+      attrs = nil
+      if flags[:attr]
+        attrs, buffer = decode_nodes(buffer) 
+      end
 
       node = decode_node(type, buffer.slice(0, len))
 
@@ -198,5 +234,15 @@ module EM::Rserve
 
       [node, buffer.slice(len .. -1)]
     end
+
+    def self.decode_nodes_array(buffer)
+      ary = []
+      until buffer.nil? or buffer.empty?
+        val, buffer = decode_nodes(buffer)
+        ary << val
+      end
+      ary
+    end
+
   end
 end
