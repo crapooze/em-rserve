@@ -68,8 +68,9 @@ module EM::Rserve
         map[type]
       end
 
-      def interpret(dat)
-      end
+      attr_accessor :rb_val
+
+      alias :interpret :rb_val=
 
       def int2bool(i)
         if i == 1
@@ -87,6 +88,7 @@ module EM::Rserve
       class ParentNode < Node
         def interpret(dat)
           @children = Sexp.decode_nodes_array(dat)
+          super(children.map(&:rb_val))
         end
       end
 
@@ -96,28 +98,28 @@ module EM::Rserve
       class Null < Node
         code XT_NULL
         def interpret(dat)
-          nil
+          super nil
         end
       end
 
       class Bool < Node
         code XT_BOOL
         def interpret(dat)
-          int2bool(dat.unpack('i').first)
+          super int2bool(dat.unpack('i').first)
         end
       end
 
       class Int < Node
         code XT_INT
         def interpret(dat)
-          dat.unpack('i').first
+          super dat.unpack('i').first
         end
       end
 
       class Double < Node
         code XT_DOUBLE
         def interpret(dat)
-          dat.unpack('d').first
+          super dat.unpack('d').first
         end
       end
 
@@ -128,7 +130,7 @@ module EM::Rserve
         code XT_STR
         def interpret(dat)
           val, padding = dat.split("\0", 2)
-          val
+          super val
         end
       end
 
@@ -140,23 +142,23 @@ module EM::Rserve
         code XT_ARRAY_STR
         def interpret(dat)
           ary = dat.split("\0")
-          return ary if ary.empty?
+          return(super(ary)) if ary.empty?
           ary.pop if ary.last.tr("\1",'').empty?
-          ary
+          super ary
         end
       end
 
       class ArrayInt < NodesArray
         code XT_ARRAY_INT
         def interpret(dat)
-          dat.unpack('V' * (dat.size/4))
+          super dat.unpack('V' * (dat.size/4))
         end
       end
 
       class ArrayDouble < NodesArray
         code XT_ARRAY_DOUBLE
         def interpret(dat)
-          dat.unpack('d'*(dat.size/8))
+          super dat.unpack('d'*(dat.size/8))
         end
       end
 
@@ -165,7 +167,7 @@ module EM::Rserve
 
         def interpret(dat)
           cnt, dat = dat.unpack('ia*')
-          dat.unpack('c'*cnt).map{|i| int2bool(i)}
+          super dat.unpack('c'*cnt).map{|i| int2bool(i)}
         end
       end
 
@@ -199,7 +201,7 @@ module EM::Rserve
         code XT_RAW
         def interpret(dat)
           cnt,dat=dat.unpack('ia*')
-          dat.slice(0,cnt)
+          super dat.slice(0,cnt)
         end
       end
 
@@ -209,7 +211,9 @@ module EM::Rserve
     end
 
     def self.parse(dat)
-      Node::Root.new.interpret(dat)
+      node = Node::Root.new
+      node.interpret(dat)
+      node
     end
 
     def self.head_parameter(head)
@@ -236,8 +240,7 @@ module EM::Rserve
       klass = Node.class_for_type(type)
       if klass
         node = klass.new
-        val = node.interpret(buffer)
-        #announce val.inspect
+        node.interpret(buffer)
         node
       else
         raise RuntimeError, "no Node to decode type #{type}"
