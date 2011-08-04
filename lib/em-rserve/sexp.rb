@@ -71,17 +71,39 @@ module EM::Rserve
       def interpret(dat)
       end
 
-      class Root < Node
+      def int2bool(i)
+        if i == 1
+          true
+        elsif i == 0
+          false
+        elsif i == 2
+          nil
+        else
+          raise "unknown bool int: #{i}"
+        end
+      end
+
+      # not leaves
+      class ParentNode < Node
         def interpret(dat)
           @children = Sexp.decode_nodes_array(dat)
         end
       end
 
-      class Null < Node
-        code XT_BOOL
+      class Root < ParentNode
+      end
 
+      class Null < Node
+        code XT_NULL
         def interpret(dat)
           nil
+        end
+      end
+
+      class Bool < Node
+        code XT_BOOL
+        def interpret(dat)
+          int2bool(dat.unpack('i').first)
         end
       end
 
@@ -134,34 +156,40 @@ module EM::Rserve
       class ArrayDouble < NodesArray
         code XT_ARRAY_DOUBLE
         def interpret(dat)
-          dat.unpack('d' * (dat.size/8))
+          dat.unpack('d'*(dat.size/8))
         end
       end
 
-      class NodesList < Node
+      class ArrayBool < NodesArray
+        code XT_ARRAY_BOOL
+
         def interpret(dat)
-          @children = Sexp.decode_nodes_array(dat)
+          cnt, dat = dat.unpack('ia*')
+          dat.unpack('c'*cnt).map{|i| int2bool(i)}
         end
+      end
+
+      class NodesList < ParentNode
       end
 
       class ListTag < NodesList
         code XT_LIST_TAG
       end
 
-      class NodesLang < Node
-        def interpret(dat)
-          @children = Sexp.decode_nodes_array(dat)
-        end
+      class ListNoTag < NodesList
+        code XT_LIST_NOTAG
+      end
+
+      class NodesLang < ParentNode
       end
 
       class LangTag < NodesLang
         code XT_LANG_TAG
       end
 
-      class LangTag < NodesLang
+      class LangNoTag < NodesLang
         code XT_LANG_NOTAG
       end
-
 
       class Vector < Node
         code XT_VECTOR
@@ -169,13 +197,14 @@ module EM::Rserve
 
       class Raw < Node
         code XT_RAW
+        def interpret(dat)
+          cnt,dat=dat.unpack('ia*')
+          dat.slice(0,cnt)
+        end
       end
 
-      class Closure < Node
+      class Closure < ParentNode
         code XT_CLOS 
-        def interpret(dat)
-          @children = Sexp.decode_nodes_array(dat)
-        end
       end
     end
 
@@ -208,7 +237,7 @@ module EM::Rserve
       if klass
         node = klass.new
         val = node.interpret(buffer)
-        announce val.inspect
+        #announce val.inspect
         node
       else
         raise RuntimeError, "no Node to decode type #{type}"
