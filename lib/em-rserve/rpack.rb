@@ -76,10 +76,22 @@ module EM::Rserve
       Sexp.parse(dat)
     end
 
+    def decode_int(dat)
+      dat.unpack('i').first
+    end
+
+    def decode_bytestream(dat)
+      dat
+    end
+
     def decode_parameter(type, dat, len=nil)
       case type
       when DT_SEXP
         decode_sexp dat
+      when DT_INT
+        decode_int dat
+      when DT_BYTESTREAM
+        decode_bytestream dat
       else 
         p "missing decode: #{type}"
       end
