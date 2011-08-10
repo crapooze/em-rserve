@@ -74,6 +74,8 @@ module EM::Rserve
           message = Message.from_bin dat
           handler.receive_message message
           @header = nil
+        else
+          throw :stop
         end
       elsif buffer.size >= 16
         dat = buffer.slice(0, 16)
