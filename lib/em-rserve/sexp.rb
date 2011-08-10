@@ -68,9 +68,9 @@ module EM::Rserve
         map[type]
       end
 
-      attr_accessor :rb_val
-
-      alias :interpret :rb_val=
+      attr_accessor :rb_raw
+      alias :rb_val :rb_raw
+      alias :interpret :rb_raw=
 
       def int2bool(i)
         if i == 1
@@ -88,11 +88,14 @@ module EM::Rserve
       class ParentNode < Node
         def interpret(dat)
           @children = Sexp.decode_nodes_array(dat)
-          super(children.map(&:rb_val))
+          super(children.map(&:rb_raw))
         end
       end
 
       class Root < ParentNode
+        def rb_val
+          children.first.rb_val
+        end
       end
 
       class Null < Node
@@ -151,7 +154,7 @@ module EM::Rserve
       class ArrayInt < NodesArray
         code XT_ARRAY_INT
         def interpret(dat)
-          super dat.unpack('V' * (dat.size/4))
+          super dat.unpack('i'*(dat.size/4))
         end
       end
 
@@ -176,6 +179,13 @@ module EM::Rserve
 
       class ListTag < NodesList
         code XT_LIST_TAG
+
+        def rb_val
+          ary = rb_raw
+          hash = Hash.new
+          ary.each_slice(2){|v,k| hash[k] = v}
+          hash
+        end
       end
 
       class ListNoTag < NodesList
@@ -195,6 +205,9 @@ module EM::Rserve
 
       class Vector < ParentNode
         code XT_VECTOR
+        def rb_val
+          rb_raw
+        end
       end
 
       class Raw < Node
@@ -225,6 +238,7 @@ module EM::Rserve
       [type, flags, len]
     end
 
+    # debugging function
     def self.xt_type_sym(type)
       self.constants.find{|c| self.const_get(c) == type}
     end
@@ -247,7 +261,7 @@ module EM::Rserve
       end
     end
 
-    # Decodes a buffer reading starting with a header
+    # Decodes a buffer starting with a header
     # returns an array of two elements:
     # - the new, interpreted Node
     # - the remainder of the buffer
