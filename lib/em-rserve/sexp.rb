@@ -44,6 +44,13 @@ module EM::Rserve
         @attribute = nil
       end
 
+      def descent(depth=0, &blk)
+        blk.call(self, depth)
+        @children.each do |c|
+          c.descent(depth + 1, &blk)
+        end
+      end
+
       class << self
         def code(val=nil)
           if val
