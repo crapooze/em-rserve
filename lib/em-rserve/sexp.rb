@@ -134,6 +134,13 @@ module EM::Rserve
       end
 
       class NodesArray < Node
+        def rb_val
+          if rb_raw.size > 1
+            rb_raw
+          else
+            rb_raw.first
+          end
+        end
       end
 
       class String < Node
@@ -188,7 +195,7 @@ module EM::Rserve
         code XT_LIST_TAG
 
         def rb_val
-          ary = rb_raw
+          ary = children.map(&:rb_val)
           hash = Hash.new
           ary.each_slice(2){|v,k| hash[k] = v}
           hash
@@ -237,10 +244,10 @@ module EM::Rserve
     end
 
     def self.head_parameter(head)
-      type = head & 0x0000003f #high bits are for flags
+      type = head & 0x3f #high bits are for flags
       large_flag = !(head & 0x40 == 0) #  i.e. 1 << 6 (64)
       attr_flag = !(head & 0x80 == 0)  #  i.e. 1 << 7 (128)
-      len  = (head & 0xffffff00) >> 8
+      len  = (head & ~0xff) >> 8
       flags = {large: large_flag, attr: attr_flag}
       [type, flags, len]
     end
@@ -252,7 +259,7 @@ module EM::Rserve
 
     # debugging function
     def self.announce(str)
-       puts "A:#{str}"
+      # puts "A:#{str}"
     end
 
     # Decodes a buffer given a type of node
@@ -275,22 +282,25 @@ module EM::Rserve
     def self.decode_nodes(buffer)
       head, buffer = buffer.unpack('Va*')
       type, flags, len = head_parameter(head)
-      #announce "reading: #{len}"
+
+      # Cuts the buffer at the correct length and give away the remainder
+      buffer, remainder = buffer.unpack("a#{len}a*")
+
       attrs = nil
       if flags[:attr]
         attrs, buffer = decode_nodes(buffer) 
       end
 
-      node = decode_node(type, buffer.slice(0, len))
+      node = decode_node(type, buffer)
 
       node.attribute = attrs if attrs
 
-      [node, buffer.slice(len .. -1)]
+      [node, remainder]
     end
 
     def self.decode_nodes_array(buffer)
       ary = []
-      until buffer.nil? or buffer.empty?
+      until buffer.empty?
         val, buffer = decode_nodes(buffer)
         ary << val
       end
