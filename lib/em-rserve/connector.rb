@@ -19,7 +19,15 @@ module EM::Rserve
       super
       #type of parser carries the state, no need to carry it internally and do
       #zillions of state check
-      @parser = IDParser.new(self) 
+      replace_parser! IDParser
+    end
+
+    def replace_parser!(klass)
+      new_parser = klass.new(self)
+      if @parser
+        new_parser.replace(@parser)
+      end
+      @parser = new_parser
     end
 
     def receive_data(dat)
@@ -29,7 +37,7 @@ module EM::Rserve
     def receive_id(id)
       # on last line, the messaging can start
       if id.last_one?
-        @parser = MessageParser.new(self).replace(@parser)
+        replace_parser! MessageParser
         EM.next_tick do
           ready
         end
