@@ -31,7 +31,7 @@ module EM::Rserve
     end
 
     def error?
-      command & RESP_ERR > 0
+      ((command & RESP_ERR) & ~RESP_OK) > 0
     end
 
     def error
