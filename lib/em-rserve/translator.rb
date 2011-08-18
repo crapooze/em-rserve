@@ -6,7 +6,6 @@ module EM::Rserve
       attR = node.attribute
 
       pair = [node.class, attR.class]
-      p pair
       klass = case pair
               when [Sexp::Node::ArrayInt, NilClass]
                 ArrayTranslator
