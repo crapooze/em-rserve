@@ -85,6 +85,20 @@ module EM::Rserve
         def inspect
           super.sub(/}$/," @rows: #{rows}}")
         end
+
+        def each_struct
+          if block_given?
+            all_keys = keys #not sure keys will always return the same order
+            struct = Struct.new(*all_keys.map(&:to_sym))
+            #XXX when we map and transpose, we actually do computation before they
+            #are needed, could improve with true-style iterators
+            all_keys.map{|k| self[k]}.transpose.each do |values|
+              yield struct.new(*values)
+            end
+          else
+            Enumerator.new(:self, :each_struct)
+          end
+        end
       end
 
       def translate_data_frame
