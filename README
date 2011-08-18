@@ -1,0 +1,17 @@
+
+EM::Rserve is an attempt to bring RServe over EventMachine.
+Consider it a development version.
+
+So far it can:
+- connect to a server
+- detach and reattach a session
+- parse most low-level messages
+- parse most R' S-expressions to a ruby tree
+- translate some common R' S-expressions to "base" ruby objects such as arrays, strings, hashes ...
+- evaluate strings of R code
+
+Links:
+- http://www.rforge.net/Rserve/
+- http://rubyeventmachine.com/
+
+Contributions welcome
