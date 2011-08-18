@@ -232,8 +232,16 @@ module EM::Rserve
         end
       end
 
+      class Unknown < Node
+        code XT_UNKNOWN
+      end
+
       class Closure < ParentNode
         code XT_CLOS 
+      end
+
+      class S4 < ParentNode
+        code XT_S4 
       end
     end
 
