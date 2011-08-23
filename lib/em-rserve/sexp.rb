@@ -45,10 +45,64 @@ module EM::Rserve
       end
 
       def descent(depth=0, &blk)
-        blk.call(self, depth)
-        @children.each do |c|
-          c.descent(depth + 1, &blk)
+        if block_given?
+          blk.call(self, depth)
+          @children.each do |c|
+            c.descent(depth + 1, &blk)
+          end
+        else
+          Enumerator.new(self, :descent)
         end
+      end
+
+      def dump_sexp_array
+        descent.map do |n,depth|
+          flags = {:large => false, :attribute => attribute && true}
+          head = self.class.parameter_head(self.class.code, flags, n.size)
+          [head, n.dumped_value].pack('Va*')
+        end
+      end
+
+      def dump_sexp
+        dump_sexp_array.join
+      end
+
+      def total_size
+        descent.inject(0){|sum,n,depth| sum+n.size}
+      end
+
+      def size
+        if attribute
+          atomic_size + attribute.size
+        else
+          atomic_size
+        end
+      end
+
+      def dumped_value
+        if attribute
+          atomic_dumped_value + attribute.dumped_value
+        else
+          atomic_dumped_value
+        end
+      end
+
+      def atomic_size
+        atomic_dumped_value.length
+      end
+
+      def atomic_dumped_value
+        ''
+      end
+
+      def self.parameter_head(type, flags, len)
+        head_bits  = type & 0x3f #high bits are for flags
+        len_bits   = (len & 0xff) << 8
+        flags_bits = 0
+        flags_bits |= 0x40 if flags[:large]
+        flags_bits |= 0x80 if flags[:attr]
+        ret = head_bits | len_bits | flags_bits
+        ret
       end
 
       class << self
@@ -91,6 +145,18 @@ module EM::Rserve
         end
       end
 
+      def bool2int(b)
+        if b == true
+          1
+        elsif b == false
+          0
+        elsif b.nil?
+          2
+        else
+          raise "unknown bool for int: #{b}"
+        end
+      end
+
       # not leaves
       class ParentNode < Node
         def interpret(dat)
@@ -102,6 +168,10 @@ module EM::Rserve
       class Root < ParentNode
         def rb_val
           children.first.rb_val
+        end
+
+        def dump_sexp
+          children.first.dump_sexp
         end
       end
 
@@ -117,12 +187,20 @@ module EM::Rserve
         def interpret(dat)
           super int2bool(dat.unpack('i').first)
         end
+
+        def atomic_dumped_value
+          [bool2int(rb_raw)].pack('i')
+        end
       end
 
       class Int < Node
         code XT_INT
         def interpret(dat)
           super dat.unpack('i').first
+        end
+
+        def atomic_dumped_value
+          [rb_raw].pack('i')
         end
       end
 
@@ -163,6 +241,12 @@ module EM::Rserve
           ary.pop if ary.last.tr("\1",'').empty?
           super ary
         end
+
+        def atomic_dumped_value
+          str = (rb_raw + ['']).join("\0")
+          str << "\1" * (str.size % 4)
+          str
+        end
       end
 
       class ArrayInt < NodesArray
@@ -170,12 +254,20 @@ module EM::Rserve
         def interpret(dat)
           super dat.unpack('i'*(dat.size/4))
         end
+
+        def atomic_dumped_value
+          rb_raw.pack('i*')
+        end
       end
 
       class ArrayDouble < NodesArray
         code XT_ARRAY_DOUBLE
         def interpret(dat)
           super dat.unpack('d'*(dat.size/8))
+        end
+
+        def atomic_dumped_value
+          rb_raw.pack('d*')
         end
       end
 
@@ -185,6 +277,10 @@ module EM::Rserve
         def interpret(dat)
           cnt, dat = dat.unpack('ia*')
           super dat.unpack('c'*cnt).map{|i| int2bool(i)}
+        end
+
+        def atomic_dumped_value
+          ([rb_raw.size] + rb_raw.map{|v| bool2int(v)}).pack('ic*')
         end
       end
 
@@ -314,6 +410,5 @@ module EM::Rserve
       end
       ary
     end
-
   end
 end

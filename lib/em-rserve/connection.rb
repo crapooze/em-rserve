@@ -59,9 +59,8 @@ module EM::Rserve
       request(&blk)
     end
 
-    def assign(symbol, sexp, parse_symbol_name=true)
-      raise NotImplementedError, "will come later"
-      data = Message.encode_sexp(sexp)
+    def assign(symbol, sexp_node, parse_symbol_name=true, &blk)
+      data = Message.new([symbol.to_s, sexp_node]).to_bin
       header = if parse_symbol_name
                  Header.new(QAP1::CMD_setSEXP, data.length, 0, 0)
                else
@@ -74,7 +73,6 @@ module EM::Rserve
     end
 
     # MISSING:
-    #   - assign/set
     #   - open/close/delete/read/write files
     #   - set encoding
     #   - set buffer size

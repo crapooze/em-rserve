@@ -24,6 +24,8 @@ module EM::Rserve
         encode_double param
       when String, :string
         encode_string param
+      when Sexp::Node
+        encode_sexp_node param
       when :bytestream
         encode_bytestream param
         #XXX Array and rest
@@ -60,7 +62,10 @@ module EM::Rserve
     def encode_large(val, len=nil)
     end
 
-    def encode_sexp(val, len=nil)
+    def encode_sexp_node(node, len=nil)
+      dat = node.dump_sexp
+      len ||= dat.length
+      pack_parameter(DT_SEXP, len, dat, 'a*')
     end
 
     def encode_array(val, len=nil)
