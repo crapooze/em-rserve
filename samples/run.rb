@@ -54,6 +54,7 @@ class DevelConnection < EM::Rserve::Connection
     r_eval "cor(c(1:100), runif(1:100))"
     r_eval "cor(c(1:100), c(1:100))"
     r_eval 'table(c(1,2,3,2,2))'
+    r_eval 'table(c("a", "b", "c", "a", "b"))'
     r_eval "data.frame(foo=c(1:8))"
     r_eval "data.frame(foo=c(1:8), bar=seq(100,800,100))"
     r_eval "data.frame(foo=c(1,2,3), bar=c(NA,FALSE,TRUE), row.names=c('foo','bar','baz'))" 

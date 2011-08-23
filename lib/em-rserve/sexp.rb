@@ -42,6 +42,7 @@ module EM::Rserve
       def initialize
         @children = []
         @attribute = nil
+        yield self if block_given?
       end
 
       def descent(depth=0, &blk)
@@ -55,43 +56,26 @@ module EM::Rserve
         end
       end
 
-      def dump_sexp_array
-        descent.map do |n,depth|
-          flags = {:large => false, :attribute => attribute && true}
-          head = self.class.parameter_head(self.class.code, flags, n.size)
-          [head, n.dumped_value].pack('Va*')
-        end
-      end
-
       def dump_sexp
-        dump_sexp_array.join
+        body = dumped_value_with_attribute
+        children_data = children.map do |n|
+          n.dump_sexp
+        end.join('')
+        size = body.size + children_data.size
+        flags = {:large => false, :attr => attribute && true}
+        head = self.class.parameter_head(self.class.code, flags, size)
+        [head, body + children_data].pack('Va*')
       end
 
-      def total_size
-        descent.inject(0){|sum,n,depth| sum+n.size}
-      end
-
-      def size
+      def dumped_value_with_attribute
         if attribute
-          atomic_size + attribute.size
+          attribute.dump_sexp  + dumped_value 
         else
-          atomic_size
+          dumped_value
         end
       end
 
       def dumped_value
-        if attribute
-          atomic_dumped_value + attribute.dumped_value
-        else
-          atomic_dumped_value
-        end
-      end
-
-      def atomic_size
-        atomic_dumped_value.length
-      end
-
-      def atomic_dumped_value
         ''
       end
 
@@ -188,7 +172,7 @@ module EM::Rserve
           super int2bool(dat.unpack('i').first)
         end
 
-        def atomic_dumped_value
+        def dumped_value
           [bool2int(rb_raw)].pack('i')
         end
       end
@@ -199,7 +183,7 @@ module EM::Rserve
           super dat.unpack('i').first
         end
 
-        def atomic_dumped_value
+        def dumped_value
           [rb_raw].pack('i')
         end
       end
@@ -231,6 +215,12 @@ module EM::Rserve
 
       class SymName < String
         code XT_SYMNAME
+
+        def dumped_value
+          ret = rb_raw + "\0"
+          ret << "\0" * (ret.size % 4)
+          ret
+        end
       end
 
       class ArrayString < NodesArray
@@ -242,7 +232,7 @@ module EM::Rserve
           super ary
         end
 
-        def atomic_dumped_value
+        def dumped_value
           str = (rb_raw + ['']).join("\0")
           str << "\1" * (str.size % 4)
           str
@@ -255,7 +245,7 @@ module EM::Rserve
           super dat.unpack('i'*(dat.size/4))
         end
 
-        def atomic_dumped_value
+        def dumped_value
           rb_raw.pack('i*')
         end
       end
@@ -266,7 +256,7 @@ module EM::Rserve
           super dat.unpack('d'*(dat.size/8))
         end
 
-        def atomic_dumped_value
+        def dumped_value
           rb_raw.pack('d*')
         end
       end
@@ -279,7 +269,7 @@ module EM::Rserve
           super dat.unpack('c'*cnt).map{|i| int2bool(i)}
         end
 
-        def atomic_dumped_value
+        def dumped_value
           ([rb_raw.size] + rb_raw.map{|v| bool2int(v)}).pack('ic*')
         end
       end
@@ -315,9 +305,6 @@ module EM::Rserve
 
       class Vector < ParentNode
         code XT_VECTOR
-        def rb_val
-          rb_raw
-        end
       end
 
       class Raw < Node

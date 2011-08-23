@@ -3,6 +3,7 @@ $LOAD_PATH << './lib'
 
 require 'em-rserve'
 require 'em-rserve/qap1'
+require 'pp'
 require 'em-rserve/translator'
 
 class DevelConnection < EM::Rserve::Connection
@@ -11,7 +12,7 @@ class DevelConnection < EM::Rserve::Connection
   def dump_sexp(msg)
     raise unless msg.parameters.size == 1
     root = msg.parameters.first
-    p root
+    pp root
     val =  EM::Rserve::Translator.r_to_ruby(root)
     p val
   end
@@ -32,6 +33,23 @@ class DevelConnection < EM::Rserve::Connection
       req.callback do |msg|
         puts 'assigned'
         dump_r_val sym.to_s
+      end
+    end
+  end
+
+  def loop_parse_r_val(str)
+    r_eval(str) do |req|
+      req.callback do |msg|
+        raise unless msg.parameters.size == 1
+        root = msg.parameters.first
+        new_root = EM::Rserve::Sexp.parse(root.dump_sexp)
+        val1 =  EM::Rserve::Translator.r_to_ruby(root)
+        val2 =  EM::Rserve::Translator.r_to_ruby(new_root)
+        if val1 == val2
+          p "ok: #{str}" 
+        else
+          p "ko: #{str}"
+        end
       end
     end
   end
@@ -92,11 +110,55 @@ class DevelConnection < EM::Rserve::Connection
     assign_and_debug_node :lol, root
   end
 
-  def do_table
+  def do_table_for_ints
+    root = EM::Rserve::Sexp::Node::Root.new do |root|
+      root.children << EM::Rserve::Sexp::Node::ArrayInt.new do |node|
+        node.rb_raw = [1,3,1]
+        node.attribute = EM::Rserve::Sexp::Node::ListTag.new do |attr|
+          attr.children << EM::Rserve::Sexp::Node::ArrayInt.new do |val|
+            val.rb_raw = [3]
+          end
+          attr.children << EM::Rserve::Sexp::Node::SymName.new do |val|
+            val.rb_raw = "dim"
+          end
+          attr.children << EM::Rserve::Sexp::Node::Vector.new do |vector|
+            vector.attribute = EM::Rserve::Sexp::Node::ListTag.new do |tags|
+              tags.rb_raw = [[''], "names"] #XXX should not be necessary to correct dump
+              tags.children << EM::Rserve::Sexp::Node::ArrayString.new do |strings|
+                strings.rb_raw = ['']
+              end
+              tags.children << EM::Rserve::Sexp::Node::SymName.new do |val|
+                val.rb_raw = 'names'
+              end
+            end
+            vector.children << EM::Rserve::Sexp::Node::ArrayString.new do |strings|
+              strings.rb_raw = ['1', '2', '3']
+            end
+            vector.rb_raw = [['1', '2', '3']] #XXX should not be needed
+          end
+          attr.children << EM::Rserve::Sexp::Node::SymName.new do |val|
+            val.rb_raw = "dimnames"
+          end
+          attr.children << EM::Rserve::Sexp::Node::ArrayString.new do |val|
+            val.rb_raw = ["table"]
+          end
+          attr.children << EM::Rserve::Sexp::Node::SymName.new do |val|
+            val.rb_raw = "class"
+          end
+          attr.rb_raw = [[3], "dim", [["1", "2", "3"]], "dimnames", ["table"], "class"] #XXX should not be needed
+        end
+        root.rb_raw = [[1, 3, 1]]
+      end
+    end
+
+    assign_and_debug_node :lol, root
   end
 
   def ready
     puts "ready"
+
+    # loop_parse_r_val 'c(1:5)'
+    loop_parse_r_val 'table(c(1,2,3,2,2))'
     
     #do_int
     #do_double
@@ -110,7 +172,14 @@ class DevelConnection < EM::Rserve::Connection
     #do_array_bool
     #do_array_string
 
-    dump_r_val 'table(c(1,2,3,2,2))'
+    #do_table_for_ints
+
+    #r_eval 'table(c(1,2,3,2,2))'
+    #table:
+    # root 
+    #  ArrayInt
+    #
+
     return
     r_eval "data.frame(foo=c(1:8), bar=seq(100,800,100))"
     r_eval "data.frame(foo=c(1,2,3), bar=c(NA,FALSE,TRUE), row.names=c('foo','bar','baz'))" 

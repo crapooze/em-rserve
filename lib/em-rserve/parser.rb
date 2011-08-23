@@ -71,7 +71,6 @@ module EM::Rserve
         if expected_length > 0 and buffer.size >= expected_length
           dat = buffer.slice(0, expected_length)
           @buffer = buffer.slice(expected_length .. -1)
-          p "M> #{dat}"
           message = Message.from_bin dat
           handler.receive_message message
           @header = nil

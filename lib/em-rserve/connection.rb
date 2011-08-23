@@ -61,6 +61,7 @@ module EM::Rserve
 
     def assign(symbol, sexp_node, parse_symbol_name=true, &blk)
       data = Message.new([symbol.to_s, sexp_node]).to_bin
+      data << "\xFF" * data.length % 4
       header = if parse_symbol_name
                  Header.new(QAP1::CMD_setSEXP, data.length, 0, 0)
                else
