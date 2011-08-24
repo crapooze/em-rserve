@@ -157,8 +157,10 @@ class DevelConnection < EM::Rserve::Connection
   def ready
     puts "ready"
 
-    # loop_parse_r_val 'c(1:5)'
+    loop_parse_r_val 'c(1:5)'
     loop_parse_r_val 'table(c(1,2,3,2,2))'
+    loop_parse_r_val "data.frame(foo=c(1:8), bar=seq(100,800,100))"
+    loop_parse_r_val "data.frame(foo=c(1,2,3), bar=c(NA,FALSE,TRUE), row.names=c('foo','bar','baz'))" 
     
     #do_int
     #do_double
@@ -181,8 +183,6 @@ class DevelConnection < EM::Rserve::Connection
     #
 
     return
-    r_eval "data.frame(foo=c(1:8), bar=seq(100,800,100))"
-    r_eval "data.frame(foo=c(1,2,3), bar=c(NA,FALSE,TRUE), row.names=c('foo','bar','baz'))" 
     r_eval 'function(a,b=2){a+b}' 
     r_eval 'ls'
     r_eval 'print'

@@ -2,12 +2,14 @@
   -> will need to modify Header#error? and Header#error
 * rename modules and reorder directory
 * support for long (>8M) messages
-* translate ruby to Sexp nodes
 * dump Sexp to qap1 format
-* assign(var, value) command
+  - more types / closures
+* rename translator to r2ruby module for one way translating
+* ruby2r translator
 * login command
   support crypt and store salt from connection setup
 * better attach method
 * write doc
 * more spec once the RServe spec is better understood/have enough examples
 * subclass Request for each commmand instead of current quick'n dirty mechanism
+* better test requests stacking/unstacking
