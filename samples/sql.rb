@@ -33,7 +33,6 @@ $LOAD_PATH << './lib'
 
 require 'em-rserve'
 require 'em-rserve/qap1'
-require 'em-rserve/translator'
 
 class DevelConnection < EM::Rserve::Connection
   attr_reader :request_queue
