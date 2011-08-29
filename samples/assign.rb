@@ -13,7 +13,7 @@ class DevelConnection < EM::Rserve::Connection
     raise unless msg.parameters.size == 1
     root = msg.parameters.first
     pp root
-    val =  EM::Rserve::Translator.r_to_ruby(root)
+    val =  EM::Rserve::RtoRuby::Translator.r_to_ruby(root)
     p val
   end
 
@@ -43,8 +43,8 @@ class DevelConnection < EM::Rserve::Connection
         raise unless msg.parameters.size == 1
         root = msg.parameters.first
         new_root = EM::Rserve::Sexp.parse(root.dump_sexp)
-        val1 =  EM::Rserve::Translator.r_to_ruby(root)
-        val2 =  EM::Rserve::Translator.r_to_ruby(new_root)
+        val1 =  EM::Rserve::RtoRuby::Translator.r_to_ruby(root)
+        val2 =  EM::Rserve::RtoRuby::Translator.r_to_ruby(new_root)
         if val1 == val2
           p "ok: #{str}" 
         else

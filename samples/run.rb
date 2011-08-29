@@ -17,11 +17,14 @@ class DevelConnection < EM::Rserve::Connection
     raise unless msg.parameters.size == 1
     root = msg.parameters.first
     catch :cannot_translate do
-      val =  EM::Rserve::Translator.r_to_ruby(root)
+      val =  EM::Rserve::RtoRuby::Translator.r_to_ruby(root)
 
       p val
       return 
     end
+
+    puts "could not translate"
+    return
 
     node = root.children.first
     attR = node.attribute
@@ -45,6 +48,8 @@ class DevelConnection < EM::Rserve::Connection
 
   def ready
     puts "ready"
+    r_eval 'list(name="Fred", wife="Mary", no.children=3, child.ages=c(4,7,9))'
+    return
     r_eval 'c(1:5)'
     r_eval 'as.factor(c("a", "a", "b", "c"))' 
     r_eval 'TRUE'
@@ -58,9 +63,10 @@ class DevelConnection < EM::Rserve::Connection
     r_eval "data.frame(foo=c(1:8))"
     r_eval "data.frame(foo=c(1:8), bar=seq(100,800,100))"
     r_eval "data.frame(foo=c(1,2,3), bar=c(NA,FALSE,TRUE), row.names=c('foo','bar','baz'))" 
-    r_eval 'function(a,b=2){a+b}' 
-    r_eval 'ls'
-    r_eval 'print'
+#    r_eval 'function(a,b=2){a+b}' 
+#    r_eval 'ls'
+#    r_eval 'print'
+    r_eval 't.test(c(1,2,3,1),c(1,6,7,8))'
   end
 
 end

@@ -43,7 +43,7 @@ class DevelConnection < EM::Rserve::Connection
     root = msg.parameters.first
     node = root.children.first
     catch :cannot_translate do
-      val =  EM::Rserve::Translator.r_to_ruby(root)
+      val =  EM::Rserve::RtoRuby::Translator.r_to_ruby(root)
       p val
     end
   end
@@ -137,7 +137,7 @@ class DevelConnection < EM::Rserve::Connection
         root = msg.parameters.first
         node = root.children.first
         catch :cannot_translate do
-          val =  EM::Rserve::Translator.r_to_ruby(root)
+          val =  EM::Rserve::RtoRuby::Translator.r_to_ruby(root)
           val.each_struct do |st|
             p st
           end

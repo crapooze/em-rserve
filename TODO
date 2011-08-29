@@ -4,7 +4,6 @@
 * support for long (>8M) messages
 * dump Sexp to qap1 format
   - more types / closures
-* rename translator to r2ruby module for one way translating
 * ruby2r translator
 * login command
   support crypt and store salt from connection setup
