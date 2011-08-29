@@ -43,7 +43,7 @@ module EM::Rserve
     end
 
     def detach(&blk)
-      header = Header.new(QAP1::CMD_detach, 0, 0, 0)
+      header = Header.new(QAP1::CMD_detachSession, 0, 0, 0)
       send_data header.to_bin #port, key of 20 bytes
 
       request(&blk)
