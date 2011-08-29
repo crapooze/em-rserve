@@ -1,5 +1,5 @@
 
-require 'em-rserve/qap1'
+require 'em-rserve/qap1/constants'
 
 module EM::Rserve
   Header = Struct.new(:command, :length, :offset, :length2) do

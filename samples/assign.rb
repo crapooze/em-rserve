@@ -2,7 +2,6 @@
 $LOAD_PATH << './lib'
 
 require 'em-rserve'
-require 'em-rserve/qap1'
 require 'pp'
 
 class DevelConnection < EM::Rserve::Connection

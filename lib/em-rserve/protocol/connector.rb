@@ -1,6 +1,6 @@
 
-require "em-rserve/parser"
-require "em-rserve/request"
+require "em-rserve/qap1/parser"
+require "em-rserve/protocol/request"
 
 module EM::Rserve
   module Connector 

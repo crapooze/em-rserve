@@ -1,5 +1,5 @@
 
-require 'em-rserve/rpack'
+require 'em-rserve/qap1/rpack'
 
 module EM::Rserve
   class Message

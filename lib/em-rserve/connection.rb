@@ -1,10 +1,10 @@
 
-require "em-rserve/connector"
-require "em-rserve/parser"
-require "em-rserve/request"
-require "em-rserve/header"
-require "em-rserve/message"
-require "em-rserve/qap1"
+require "em-rserve/protocol/connector"
+require "em-rserve/protocol/parser"
+require "em-rserve/protocol/request"
+require "em-rserve/qap1/header"
+require "em-rserve/qap1/message"
+require "em-rserve/qap1/constants"
 
 module EM::Rserve
   class Connection < EM::Connection
