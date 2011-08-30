@@ -16,7 +16,7 @@ class DevelConnection < EM::Rserve::Connection
     raise unless msg.parameters.size == 1
     root = msg.parameters.first
     catch :cannot_translate do
-      val =  EM::Rserve::RtoRuby::Translator.r_to_ruby(root)
+      val =  EM::Rserve::R::RtoRuby::Translator.r_to_ruby(root)
 
       p val
       return 

@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
 require 'em-rserve/parser'
 
-describe EM::Rserve::IDParser do
+describe EM::Rserve::Protocol::IDParser do
   before :each do
     @receiver = Class.new do
       attr_accessor :test_block
@@ -10,7 +10,7 @@ describe EM::Rserve::IDParser do
       end
     end.new 
 
-    @parser = EM::Rserve::IDParser.new(@receiver)
+    @parser = EM::Rserve::Protocol::IDParser.new(@receiver)
   end
 
   it "should slice stuff in IDs of 4 bytes" do
@@ -18,7 +18,7 @@ describe EM::Rserve::IDParser do
     count = 3
     @receiver.test_block = lambda do |id|
       idx += 1
-      id.should be_a(EM::Rserve::ID)
+      id.should be_a(EM::Rserve::Protocol::ID)
       id.string.should eql('1234')
     end
     @parser << ("1234"*count)
@@ -30,7 +30,7 @@ describe EM::Rserve::IDParser do
     count = 3
     @receiver.test_block = lambda do |id|
       idx += 1
-      id.should be_a(EM::Rserve::ID)
+      id.should be_a(EM::Rserve::Protocol::ID)
       id.string.should eql('1234')
     end
     count.times do |t|

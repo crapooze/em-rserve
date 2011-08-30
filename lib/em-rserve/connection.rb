@@ -2,16 +2,17 @@
 require "em-rserve/protocol/connector"
 require "em-rserve/protocol/parser"
 require "em-rserve/protocol/request"
+require "em-rserve/qap1/constants"
 require "em-rserve/qap1/header"
 require "em-rserve/qap1/message"
-require "em-rserve/qap1/constants"
 
 module EM::Rserve
   class Connection < EM::Connection
-    include Connector
+    include Protocol::Connector
+    include QAP1
 
     def shutdown!(&blk)
-      header = Header.new(QAP1::CMD_shutdown,0,0,0)
+      header = Header.new(Constants::CMD_shutdown,0,0,0)
       send_data header.to_bin
 
       request(&blk) 
@@ -35,7 +36,7 @@ module EM::Rserve
       #XXX need to read the salt during connection setup
       cifer = crypted ? pwd : crypt(pwd, salt)
       data = Message.encode_string([user, cifer].join("\n"))
-      header = Header.new(QAP1::CMD_login, data.length, 0, 0)
+      header = Header.new(Constants::CMD_login, data.length, 0, 0)
       send_data header.to_bin
       send_data data
 
@@ -43,7 +44,7 @@ module EM::Rserve
     end
 
     def detach(&blk)
-      header = Header.new(QAP1::CMD_detachSession, 0, 0, 0)
+      header = Header.new(Constants::CMD_detachSession, 0, 0, 0)
       send_data header.to_bin #port, key of 20 bytes
 
       request(&blk)
@@ -63,9 +64,9 @@ module EM::Rserve
       data = Message.new([symbol.to_s, sexp_node]).to_bin
       data << "\xFF" * data.length % 4
       header = if parse_symbol_name
-                 Header.new(QAP1::CMD_setSEXP, data.length, 0, 0)
+                 Header.new(Constants::CMD_setSEXP, data.length, 0, 0)
                else
-                 Header.new(QAP1::CMD_assignSEXP, data.length, 0, 0)
+                 Header.new(Constants::CMD_assignSEXP, data.length, 0, 0)
                end
       send_data header.to_bin
       send_data data

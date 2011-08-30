@@ -1,9 +1,9 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
 require 'em-rserve/parser'
 
-describe EM::Rserve::Parser, 'initialized' do
+describe EM::Rserve::Protocol::Parser, 'initialized' do
   before :each do
-    @parser = EM::Rserve::Parser.new(:foobar)
+    @parser = EM::Rserve::Protocol::Parser.new(:foobar)
   end
 
   it "should have an empty buffer" do
@@ -15,10 +15,10 @@ describe EM::Rserve::Parser, 'initialized' do
   end
 end
 
-describe EM::Rserve::Parser, 'replacement' do
+describe EM::Rserve::Protocol::Parser, 'replacement' do
   before :each do
-    @parser = EM::Rserve::Parser.new(:foo)
-    @new_parser = EM::Rserve::Parser.new(:bar)
+    @parser = EM::Rserve::Protocol::Parser.new(:foo)
+    @new_parser = EM::Rserve::Protocol::Parser.new(:bar)
   end
 
   it "should replace the buffer but not the handler" do
@@ -29,9 +29,9 @@ describe EM::Rserve::Parser, 'replacement' do
   end
 end
 
-describe EM::Rserve::Parser, 'loop guard for topklass' do
+describe EM::Rserve::Protocol::Parser, 'loop guard for topklass' do
   before :each do
-    @parser = EM::Rserve::Parser.new(:foo)
+    @parser = EM::Rserve::Protocol::Parser.new(:foo)
   end
 
   it "should ask for subclassing" do
@@ -41,7 +41,7 @@ describe EM::Rserve::Parser, 'loop guard for topklass' do
   end
 end
 
-describe EM::Rserve::Parser, 'loop mechanics for subklasses' do
+describe EM::Rserve::Protocol::Parser, 'loop mechanics for subklasses' do
   before :each do
     m = Module.new do
       attr_accessor :test_proc
@@ -50,7 +50,7 @@ describe EM::Rserve::Parser, 'loop mechanics for subklasses' do
       end
     end
 
-    @parser = EM::Rserve::Parser.new(:foo)
+    @parser = EM::Rserve::Protocol::Parser.new(:foo)
     @parser.extend m
   end
 

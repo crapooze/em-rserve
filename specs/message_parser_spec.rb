@@ -2,7 +2,7 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
 require 'em-rserve/parser'
 
-describe EM::Rserve::MessageParser do
+describe EM::Rserve::Protocol::MessageParser do
   before :each do
     @receiver = Class.new do
       attr_accessor :h_test_block
@@ -15,14 +15,14 @@ describe EM::Rserve::MessageParser do
       end
     end.new 
 
-    @parser = EM::Rserve::MessageParser.new(@receiver)
+    @parser = EM::Rserve::Protocol::MessageParser.new(@receiver)
   end
 
   it "should read a header after 16bytes" do
     idx = 0
     @receiver.h_test_block = lambda do |h|
       idx += 1
-      h.should be_a(EM::Rserve::Header)
+      h.should be_a(EM::Rserve::QAP1::Header)
     end
     @parser << ("\0" * 16)
     idx.should eql(1)
@@ -32,7 +32,7 @@ describe EM::Rserve::MessageParser do
     idx = 0
     @receiver.h_test_block = lambda do |h|
       idx += 1
-      h.should be_a(EM::Rserve::Header)
+      h.should be_a(EM::Rserve::QAP1::Header)
     end
     16.times { @parser << "\0" }
     idx.should eql(1)
@@ -48,7 +48,7 @@ describe EM::Rserve::MessageParser do
       pack('H2'*16)
 
     @receiver.h_test_block = lambda do |m|
-      m.should be_a(EM::Rserve::Header)
+      m.should be_a(EM::Rserve::QAP1::Header)
       # Here we overwrite the header to not care about header's content in this spec
       m.extend hack
       m.message_length = message.length
@@ -57,7 +57,7 @@ describe EM::Rserve::MessageParser do
     idx = 0
     @receiver.m_test_block = lambda do |m|
       idx += 1
-      m.should be_a(EM::Rserve::Message)
+      m.should be_a(EM::Rserve::QAP1::Message)
     end
 
     stream = ("\0" * 16) + message

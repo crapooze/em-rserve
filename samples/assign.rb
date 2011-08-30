@@ -11,7 +11,7 @@ class DevelConnection < EM::Rserve::Connection
     raise unless msg.parameters.size == 1
     root = msg.parameters.first
     pp root
-    val =  EM::Rserve::RtoRuby::Translator.r_to_ruby(root)
+    val =  EM::Rserve::R::RtoRuby::Translator.r_to_ruby(root)
     p val
   end
 
@@ -40,9 +40,9 @@ class DevelConnection < EM::Rserve::Connection
       req.callback do |msg|
         raise unless msg.parameters.size == 1
         root = msg.parameters.first
-        new_root = EM::Rserve::Sexp.parse(root.dump_sexp)
-        val1 =  EM::Rserve::RtoRuby::Translator.r_to_ruby(root)
-        val2 =  EM::Rserve::RtoRuby::Translator.r_to_ruby(new_root)
+        new_root = EM::Rserve::R::Sexp.parse(root.dump_sexp)
+        val1 =  EM::Rserve::R::RtoRuby::Translator.r_to_ruby(root)
+        val2 =  EM::Rserve::R::RtoRuby::Translator.r_to_ruby(new_root)
         if val1 == val2
           p "ok: #{str}" 
         else
@@ -57,8 +57,8 @@ class DevelConnection < EM::Rserve::Connection
   end
 
   def do_array_int(ints=[1,2,3,4,5])
-    root = EM::Rserve::Sexp::Node::Root.new
-    array = EM::Rserve::Sexp::Node::ArrayInt.new
+    root = EM::Rserve::R::Sexp::Node::Root.new
+    array = EM::Rserve::R::Sexp::Node::ArrayInt.new
     array.rb_raw = ints
     root.children << array
     assign_and_debug_node :lol, root
@@ -69,16 +69,16 @@ class DevelConnection < EM::Rserve::Connection
   end
 
   def do_array_double(doubles=[1,2,3,4.2])
-    root = EM::Rserve::Sexp::Node::Root.new
-    array = EM::Rserve::Sexp::Node::ArrayDouble.new
+    root = EM::Rserve::R::Sexp::Node::Root.new
+    array = EM::Rserve::R::Sexp::Node::ArrayDouble.new
     array.rb_raw = doubles
     root.children << array
     assign_and_debug_node :lol, root
   end
 
   def do_array_bool(bools=[true, false, nil])
-    root = EM::Rserve::Sexp::Node::Root.new
-    array = EM::Rserve::Sexp::Node::ArrayBool.new
+    root = EM::Rserve::R::Sexp::Node::Root.new
+    array = EM::Rserve::R::Sexp::Node::ArrayBool.new
     array.rb_raw = bools
     root.children << array
     assign_and_debug_node :lol, root
@@ -101,46 +101,46 @@ class DevelConnection < EM::Rserve::Connection
   end
 
   def do_array_string(strs=['for', 'great', 'justice'])
-    root = EM::Rserve::Sexp::Node::Root.new
-    array = EM::Rserve::Sexp::Node::ArrayString.new
+    root = EM::Rserve::R::Sexp::Node::Root.new
+    array = EM::Rserve::R::Sexp::Node::ArrayString.new
     array.rb_raw = strs
     root.children << array
     assign_and_debug_node :lol, root
   end
 
   def do_table_for_ints
-    root = EM::Rserve::Sexp::Node::Root.new do |root|
-      root.children << EM::Rserve::Sexp::Node::ArrayInt.new do |node|
+    root = EM::Rserve::R::Sexp::Node::Root.new do |root|
+      root.children << EM::Rserve::R::Sexp::Node::ArrayInt.new do |node|
         node.rb_raw = [1,3,1]
-        node.attribute = EM::Rserve::Sexp::Node::ListTag.new do |attr|
-          attr.children << EM::Rserve::Sexp::Node::ArrayInt.new do |val|
+        node.attribute = EM::Rserve::R::Sexp::Node::ListTag.new do |attr|
+          attr.children << EM::Rserve::R::Sexp::Node::ArrayInt.new do |val|
             val.rb_raw = [3]
           end
-          attr.children << EM::Rserve::Sexp::Node::SymName.new do |val|
+          attr.children << EM::Rserve::R::Sexp::Node::SymName.new do |val|
             val.rb_raw = "dim"
           end
-          attr.children << EM::Rserve::Sexp::Node::Vector.new do |vector|
-            vector.attribute = EM::Rserve::Sexp::Node::ListTag.new do |tags|
+          attr.children << EM::Rserve::R::Sexp::Node::Vector.new do |vector|
+            vector.attribute = EM::Rserve::R::Sexp::Node::ListTag.new do |tags|
               tags.rb_raw = [[''], "names"] #XXX should not be necessary to correct dump
-              tags.children << EM::Rserve::Sexp::Node::ArrayString.new do |strings|
+              tags.children << EM::Rserve::R::Sexp::Node::ArrayString.new do |strings|
                 strings.rb_raw = ['']
               end
-              tags.children << EM::Rserve::Sexp::Node::SymName.new do |val|
+              tags.children << EM::Rserve::R::Sexp::Node::SymName.new do |val|
                 val.rb_raw = 'names'
               end
             end
-            vector.children << EM::Rserve::Sexp::Node::ArrayString.new do |strings|
+            vector.children << EM::Rserve::R::Sexp::Node::ArrayString.new do |strings|
               strings.rb_raw = ['1', '2', '3']
             end
             vector.rb_raw = [['1', '2', '3']] #XXX should not be needed
           end
-          attr.children << EM::Rserve::Sexp::Node::SymName.new do |val|
+          attr.children << EM::Rserve::R::Sexp::Node::SymName.new do |val|
             val.rb_raw = "dimnames"
           end
-          attr.children << EM::Rserve::Sexp::Node::ArrayString.new do |val|
+          attr.children << EM::Rserve::R::Sexp::Node::ArrayString.new do |val|
             val.rb_raw = ["table"]
           end
-          attr.children << EM::Rserve::Sexp::Node::SymName.new do |val|
+          attr.children << EM::Rserve::R::Sexp::Node::SymName.new do |val|
             val.rb_raw = "class"
           end
           attr.rb_raw = [[3], "dim", [["1", "2", "3"]], "dimnames", ["table"], "class"] #XXX should not be needed
