@@ -2,7 +2,6 @@
 $LOAD_PATH << './lib'
 
 require 'em-rserve'
-require 'em-rserve/qap1'
 
 $KEYPORT = false
 
@@ -12,7 +11,7 @@ class DevelConnection < EM::Rserve::Connection
   def post_init
     super
     if $KEYPORT
-      replace_parser! EM::Rserve::MessageParser
+      replace_parser! EM::Rserve::Protocol::MessageParser
       key = $KEYPORT.last
       attach key do |req|
         req.callback do |msg|

@@ -4,7 +4,6 @@ require 'em-rserve/qap1/constants'
 module EM::Rserve
   module QAP1
     Header = Struct.new(:command, :length, :offset, :length2) do
-      include Constants
 
       def self.from_bin(dat)
         raise unless dat.size == 16
@@ -24,19 +23,19 @@ module EM::Rserve
       end
 
       def response?
-        command & CMD_RESP > 0
+        command & Constants::CMD_RESP > 0
       end
 
       def ok?
-        command & RESP_OK > 0
+        command & Constants::RESP_OK > 0
       end
 
       def error?
-        ((command & RESP_ERR) & ~RESP_OK) > 0
+        ((command & Constants::RESP_ERR) & ~Constants::RESP_OK) > 0
       end
 
       def error
-        ((command & ~RESP_ERR) >> 24) & 0xff
+        ((command & ~Constants::RESP_ERR) >> 24) & 0xff
       end
 
       #     -> self.for_message
