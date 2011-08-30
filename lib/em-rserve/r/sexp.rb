@@ -91,6 +91,10 @@ module EM::Rserve
         end
 
         class << self
+          def inherited(klass)
+            klass.instance_variable_set(:@code, nil)
+          end
+
           def code(val=nil)
             if val
               @code = val

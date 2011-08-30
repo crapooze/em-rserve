@@ -23,6 +23,7 @@ module EM::Rserve
         super
         #type of parser carries the state, no need to carry it internally and do
         #zillions of state check
+        @parser = nil
         replace_parser! IDParser
         @request_queue = []
       end
