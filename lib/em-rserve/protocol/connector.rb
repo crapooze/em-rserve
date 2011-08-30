@@ -1,5 +1,5 @@
 
-require "em-rserve/qap1/parser"
+require "em-rserve/protocol/parser"
 require "em-rserve/protocol/request"
 
 module EM::Rserve

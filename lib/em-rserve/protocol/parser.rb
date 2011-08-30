@@ -2,7 +2,7 @@
 require 'em-rserve/protocol/id'
 require 'em-rserve/qap1/header'
 require 'em-rserve/qap1/message'
-require 'em-rserve/sexp'
+require 'em-rserve/r/sexp'
 
 module EM::Rserve
   class Parser
