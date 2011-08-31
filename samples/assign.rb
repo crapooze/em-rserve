@@ -155,6 +155,13 @@ class DevelConnection < EM::Rserve::Connection
   def ready
     puts "ready"
 
+    root = EM::Rserve::R::RubytoR::Translator.ruby_to_r ['hello', 'world']
+    assign_and_debug_node :lol, root
+    
+    root = EM::Rserve::R::RubytoR::Translator.ruby_to_r [400, 30, 12]
+    assign_and_debug_node :lol, root
+
+
     loop_parse_r_val 'c(1:5)'
     loop_parse_r_val 'table(c(1,2,3,2,2))'
     loop_parse_r_val "data.frame(foo=c(1:8), bar=seq(100,800,100))"
