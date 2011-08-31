@@ -1,10 +1,13 @@
+* r2ruby translator
+  - add levels names to Factor
+* ruby2r translator
+  - support Factor (subcase for Array)
+  - support Hash
+  - support DataFrame
+  - support Table
 * RESP_ERR as a flag and not an OR-ed value
   -> will need to modify Header#error? and Header#error
-* rename modules and reorder directory
 * support for long (>8M) messages
-* dump Sexp to qap1 format
-  - more types / closures
-* ruby2r translator
 * login command
   support crypt and store salt from connection setup
 * better attach method
