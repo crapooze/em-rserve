@@ -1,6 +1,6 @@
 
 require File.join(File.dirname(__FILE__), 'spec_helper')
-require 'em-rserve/parser'
+require 'em-rserve/protocol/parser'
 
 describe EM::Rserve::Protocol::MessageParser do
   before :each do
