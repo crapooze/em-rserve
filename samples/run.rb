@@ -17,29 +17,10 @@ class DevelConnection < EM::Rserve::Connection
     root = msg.parameters.first
     catch :cannot_translate do
       val =  EM::Rserve::R::RtoRuby::Translator.r_to_ruby(root)
-
-      p val.class
       puts val.inspect
     end
-
-
     node = root.children.first
-    attR = node.attribute
-
     pp node
-
-    return
-
-    p [node.class, attR.class].map{|c| c.name.split('::').last}
-
-    msg.parameters.first.descent do |node, depth|
-      puts "#{depth} #{node.class} #{node.rb_raw} #{node.rb_val}"
-      if node.attribute
-        node.attribute.descent do |at, d|
-          puts "#{depth},#{d} #{at.class} #{at.rb_raw} #{at.rb_val}"
-        end
-      end
-    end
   end
 
   def unbind
@@ -49,9 +30,9 @@ class DevelConnection < EM::Rserve::Connection
 
   def ready
     puts "ready"
-    r_eval "data.frame(foo=c(1:8), bar=seq(100,800,100))"
-    return
     r_eval 'as.factor(c("a", "a", "b", "c"))' 
+    return
+    r_eval "data.frame(foo=c(1:8), bar=seq(100,800,100))"
     r_eval 'table(c(1,2,3,2,2))'
     r_eval 'list(name="Fred", wife="Mary", no.children=3, child.ages=c(4,7,9))'
     r_eval 'c(1:5)'
