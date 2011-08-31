@@ -1,10 +1,10 @@
-* r2ruby translator
-  - add levels names to Factor
-* ruby2r translator
-  - support Factor (subcase for Array)
-  - support Hash
-  - support DataFrame
-  - support Table
+* missing types
+  - dates
+* special values
+  - NULL, NaN, +-Inf
+* special handling in ruby2r translator
+  - Factor
+  - Table
 * RESP_ERR as a flag and not an OR-ed value
   -> will need to modify Header#error? and Header#error
 * support for long (>8M) messages
