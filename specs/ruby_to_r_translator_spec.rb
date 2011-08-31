@@ -44,6 +44,15 @@ describe EM::Rserve::R::RubytoR::Translator do
     end
     thrown.should be_false
   end
+
+  it "should translate simple hashes" do
+    thrown=true
+    catch :cannot_translate do
+      Translator.ruby_to_r({'foo' => [1,2,3,4], 'bar' => ['a', 'b', 'c', 'd']})
+      thrown=false
+    end
+    thrown.should be_false
+  end
 end
 
 describe EM::Rserve::R::RubytoR::Translator::ArrayTranslator do

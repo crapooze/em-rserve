@@ -161,6 +161,11 @@ class DevelConnection < EM::Rserve::Connection
     root = EM::Rserve::R::RubytoR::Translator.ruby_to_r [400, 30, 12]
     assign_and_debug_node :lol, root
 
+    root = EM::Rserve::R::RubytoR::Translator.ruby_to_r(:foo => [1,2,3], 
+                                                        :bar => ['a', 'b', 'c'])
+    assign_and_debug_node :lol, root
+
+    return
 
     loop_parse_r_val 'c(1:5)'
     loop_parse_r_val 'table(c(1,2,3,2,2))'

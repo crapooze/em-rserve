@@ -51,16 +51,19 @@ module EM::Rserve
         end
 
         class FactorTableTranslator < Translator
+          # Symbols represented by ints
           class Factor < Array
+            attr_accessor :levels
           end
 
+          # Frequency table
           class Table < Hash
           end
 
           def translate_factor
             levels = node.attribute.rb_val['levels']
             levels = levels.map{|str| str.to_sym}
-            Factor.new.replace(node.rb_val.map{|i| levels[i-1]})
+            ret = Factor.new.replace(node.rb_val.map{|i| levels[i-1]})
           end
 
           def translate_table
