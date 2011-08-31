@@ -1,5 +1,5 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
-require 'em-rserve/parser'
+require 'em-rserve/protocol/parser'
 
 describe EM::Rserve::Protocol::Parser, 'initialized' do
   before :each do

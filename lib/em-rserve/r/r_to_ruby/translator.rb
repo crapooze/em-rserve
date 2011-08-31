@@ -1,4 +1,6 @@
 
+require 'em-rserve/r/sexp'
+
 module EM::Rserve
   module R
     module RtoRuby
