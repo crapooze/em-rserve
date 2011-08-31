@@ -5,6 +5,11 @@ require 'em-rserve/r/sexp'
 describe EM::Rserve::R::RubytoR::Translator do
   include EM::Rserve::R::RubytoR
 
+  it "should remember the object" do
+    tr = Translator.new(:foobar)
+    tr.obj.should eql(:foobar)
+  end
+
   it "should throw :cannot_translate when cannot translate" do
     thrown=true
     catch :cannot_translate do
@@ -14,9 +19,30 @@ describe EM::Rserve::R::RubytoR::Translator do
     thrown.should be_true
   end
 
-  it "should remember the object" do
-    tr = Translator.new(:foobar)
-    tr.obj.should eql(:foobar)
+  it "should translate simple arrays" do
+    thrown=true
+    catch :cannot_translate do
+      Translator.ruby_to_r([1, 2, 3])
+      Translator.ruby_to_r([1, 2.2, 3.2])
+      Translator.ruby_to_r([true, false, nil])
+      Translator.ruby_to_r(["we", "miss", "you", "_why"])
+      thrown=false
+    end
+    thrown.should be_false
+  end
+
+  it "should translate simple values" do
+    thrown=true
+    catch :cannot_translate do
+      Translator.ruby_to_r(1)
+      Translator.ruby_to_r(1.0)
+      Translator.ruby_to_r(false)
+      Translator.ruby_to_r(nil)
+      Translator.ruby_to_r(true)
+      Translator.ruby_to_r("hello world")
+      thrown=false
+    end
+    thrown.should be_false
   end
 end
 

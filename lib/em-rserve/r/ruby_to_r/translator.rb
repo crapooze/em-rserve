@@ -5,16 +5,19 @@ module EM::Rserve
     module RubytoR
       class Translator
 
+        def self.translator_klass_for(obj)
+          case obj
+          when Array
+            ArrayTranslator
+          when Hash
+            HashTranslator
+          else
+            SingleObjectTranslator
+          end
+        end
+
         def self.ruby_to_r(obj)
-          klass = case obj
-                  when Array
-                    ArrayTranslator
-                  when Hash
-                    HashTranslator
-                  else
-                    DefaultTranslator
-                  end
-          klass.new(node).translate 
+          translator_klass_for(obj).new(obj).translate 
         end
 
         attr_reader :obj
@@ -27,7 +30,10 @@ module EM::Rserve
           throw :cannot_translate
         end
 
-        class DefaultTranslator < Translator
+        class SingleObjectTranslator < Translator
+          def translate
+            Translator.ruby_to_r [obj]
+          end
         end
 
         class ArrayTranslator < Translator
