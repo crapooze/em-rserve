@@ -8,6 +8,7 @@ So far it can:
 - parse most low-level messages
 - parse most R' S-expressions to a ruby tree
 - translate some common R' S-expressions to "base" ruby objects such as arrays, strings, hashes ...
+- translate some simple Ruby objects (arrays of integers, strings etc.) to R' S-expression
 - evaluate strings of R code
 
 Links:
