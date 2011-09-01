@@ -279,6 +279,20 @@ module EM::Rserve
           end
         end
 
+        class ArrayComplex < NodesArray
+          code XT_ARRAY_CPLX
+          def interpret(dat)
+            ary = dat.unpack('d'*(dat.size/8)).each_slice(2).map do |real,imag|
+              Complex(real, imag)
+            end
+            super ary
+          end
+
+          def dumped_value
+            rb_raw.map{|cpx| [cpx.real, cpx.imag]}.flatten.pack('d*')
+          end
+        end
+
         class NodesList < ParentNode
         end
 

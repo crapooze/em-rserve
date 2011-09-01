@@ -19,6 +19,8 @@ module EM::Rserve
                     ArrayTranslator
                   when [Sexp::Node::ArrayDouble, NilClass]
                     ArrayTranslator
+                  when [Sexp::Node::ArrayComplex, NilClass]
+                    ArrayTranslator
                   when [Sexp::Node::ArrayInt, Sexp::Node::ListTag]
                     FactorTableTranslator
                   when [Sexp::Node::Vector, Sexp::Node::ListTag]

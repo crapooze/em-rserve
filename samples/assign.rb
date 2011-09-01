@@ -155,6 +155,10 @@ class DevelConnection < EM::Rserve::Connection
   def ready
     puts "ready"
 
+    loop_parse_r_val '1+1i'
+
+    return
+
     root = EM::Rserve::R::RubytoR::Translator.ruby_to_r ['hello', 'world']
     assign_and_debug_node :lol, root
     
