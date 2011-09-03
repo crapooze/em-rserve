@@ -1,7 +1,4 @@
 * missing types
-  - dates
-* special values
-  - NULL, NaN, +-Inf
 * special handling in ruby2r translator
   - Factor
   - Table

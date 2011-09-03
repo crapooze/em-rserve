@@ -21,6 +21,8 @@ module EM::Rserve
                     ArrayTranslator
                   when [Sexp::Node::ArrayComplex, NilClass]
                     ArrayTranslator
+                  when [Sexp::Node::ArrayDouble, Sexp::Node::ListTag]
+                    DateTranslator
                   when [Sexp::Node::ArrayInt, Sexp::Node::ListTag]
                     FactorTableTranslator
                   when [Sexp::Node::Vector, Sexp::Node::ListTag]
@@ -49,6 +51,17 @@ module EM::Rserve
         class ArrayTranslator < Translator
           def translate
             node.rb_val
+          end
+        end
+
+        class DateTranslator < Translator
+          def translate
+            case node.attribute.rb_val['class']
+            when 'Date'
+              Time.at(node.rb_val * 86400) # R gives days Ruby wants secs
+            else
+              super
+            end
           end
         end
 

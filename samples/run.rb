@@ -17,6 +17,7 @@ class DevelConnection < EM::Rserve::Connection
     root = msg.parameters.first
     catch :cannot_translate do
       val =  EM::Rserve::R::RtoRuby::Translator.r_to_ruby(root)
+      puts "translated"
       puts val.inspect
     end
     node = root.children.first
@@ -30,8 +31,15 @@ class DevelConnection < EM::Rserve::Connection
 
   def ready
     puts "ready"
-    r_eval 'as.factor(c("a", "a", "b", "c"))' 
+
+    r_eval 'as.Date("2/3/2004", "%m/%d/%Y")'
     return
+    r_eval 'ts(1:8)'
+    r_eval 'as.formula(y~x1+x2+x3)'
+    r_eval 'raw(8)'
+    r_eval 'c(NaN, Inf)'
+    r_eval 'quote(c(1:3))'
+    r_eval 'as.factor(c("a", "a", "b", "c"))' 
     r_eval "data.frame(foo=c(1:8), bar=seq(100,800,100))"
     r_eval 'table(c(1,2,3,2,2))'
     r_eval 'list(name="Fred", wife="Mary", no.children=3, child.ages=c(4,7,9))'
