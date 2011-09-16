@@ -17,13 +17,17 @@ class FiberedConnection < EM::Rserve::Connection
     fiber.resume self if fiber
   end
 
-  def call(script)
-    r_eval(script.to_s) do |req|
+  def call(script, *args)
+    r_eval(script.to_s, *args) do |req|
       req.errback do |err|
         fiber.resume nil
       end
 
       req.callback do |msg|
+        unless msg
+          fiber.resume nil
+          next
+        end
         root = msg.parameters.first
         if root
           fiber.resume EM::Rserve::R::RtoRuby::Translator.r_to_ruby(root) 
