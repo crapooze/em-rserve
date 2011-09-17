@@ -11,15 +11,23 @@ get '/' do
   redirect :plot
 end
 
-get '/plot' do
-  EM::Rserve::Pooler::r do |r|
-    @path = File.join(Dir.pwd, "plots", "plot-#{request.object_id}.png")
-    script = erb :plot
-    r.call(script, true) 
-    File.open(@path,'r') do |ret|
-      env["async.callback"].call [200, {'Content-Type' => 'image/png'}, ret]
+helpers do
+  def plot(template, system=:erb)
+    EM::Rserve::Pooler::r do |r|
+      @path = File.join(Dir.pwd, "plots", "plot-#{request.object_id}.png")
+      r[:color] = 'blue' #sets color variable in R context (used in the template)
+      script = send system, template
+      r.call(script, true) 
+      ctype = content_type || 'image/png'
+      File.open(@path,'r') do |ret|
+        env["async.callback"].call [200, {'Content-Type' => ctype}, ret]
+      end
+      FileUtils.rm @path
     end
-    FileUtils.rm @path
+    throw :async
   end
-  throw :async
+end
+
+get '/plot' do
+  plot :plot, :erb
 end
