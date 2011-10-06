@@ -12,8 +12,12 @@ get '/' do
 end
 
 helpers do
+  def pool
+    @@pool ||= EM::Rserve::Pooler.new 10
+  end
+
   def plot(template, system=:erb)
-    EM::Rserve::Pooler::r do |r|
+    pool.r do |r|
       @path = File.join(Dir.pwd, "plots", "plot-#{request.object_id}.png")
       r[:color] = 'blue' #sets color variable in R context (used in the template)
       script = send system, template
