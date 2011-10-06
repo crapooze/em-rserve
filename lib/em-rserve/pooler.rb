@@ -6,7 +6,12 @@ module EM::Rserve
     class << self
       def r(klass=FiberedConnection)
         Fiber.new do
-          yield klass.start
+          begin
+            conn = klass.start 
+            yield conn
+          ensure
+            conn.close_connection
+          end
         end.resume
       end
     end
@@ -37,13 +42,23 @@ module EM::Rserve
       conn = connections.shift
       if conn
         Fiber.new do
-          conn.fiber = Fiber.current
-          yield conn
+          begin
+            conn.fiber = Fiber.current
+            yield conn
+          ensure
+            conn.close_connection
+          end
           fill 1 unless full?
         end.resume
       else
         fill size
-        connection {|conn| yield conn}
+        connection do |conn| 
+          begin
+            yield conn
+          ensure
+            conn.close_connection
+          end
+        end
       end
     end
 
