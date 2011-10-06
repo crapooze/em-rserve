@@ -27,6 +27,7 @@ module EM::Rserve
     end
 
     def connection
+      #XXX duplicated code from Pooler.r to avoid proc-ing the blk
       Fiber.new do
         yield connection_class.start
       end.resume
