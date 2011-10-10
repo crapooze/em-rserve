@@ -9,6 +9,7 @@ module EM::Rserve
       include R
 
       def parameter_head(type, len)
+        #TODO: support long parameter, type: 0xbf + DT_LARGE if len overflows
         (type & 0x000000ff) | ((len << 8) & 0xffffff00)
       end
 
@@ -75,9 +76,10 @@ module EM::Rserve
       end
 
       def head_parameter(head)
-        type = head & 0x000000ff 
+        type = head & 0x000000bf 
+        large = (head & DT_LARGE) > 0
         len  = (head & 0xffffff00) >> 8
-        [type, len]
+        [type, len, large]
       end
 
       def decode_sexp(dat)
@@ -109,7 +111,8 @@ module EM::Rserve
         params = []
         until buffer.empty? do
           head, buffer = buffer.unpack('Va*')
-          type, len = head_parameter(head)
+          type, len, large = head_parameter(head)
+          raise NotImplementedError, "too long QAP1 message" if large
           if buffer.size < len
             raise RuntimeError, "cannot decode #{buffer} (not enough bytes)"
           end
