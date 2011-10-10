@@ -156,6 +156,7 @@ class DevelConnection < EM::Rserve::Connection
     puts "ready"
 
     loop_parse_r_val '1+1i'
+    loop_parse_r_val 'c(1:1000)'
 
     return
 

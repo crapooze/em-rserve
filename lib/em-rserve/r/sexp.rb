@@ -82,7 +82,7 @@ module EM::Rserve
 
         def self.parameter_head(type, flags, len)
           head_bits  = type & 0x3f #high bits are for flags
-          len_bits   = (len & 0xff) << 8
+          len_bits   = (len & 0xffffff) << 8
           flags_bits = 0
           flags_bits |= 0x40 if flags[:large]
           flags_bits |= 0x80 if flags[:attr]
