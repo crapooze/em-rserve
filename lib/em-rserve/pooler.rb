@@ -21,6 +21,7 @@ module EM::Rserve
       @connections = []
       @size = size
       @connection_class = klass
+      fill size
     end
 
     def empty?
