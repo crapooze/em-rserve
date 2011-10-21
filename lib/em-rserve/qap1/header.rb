@@ -37,9 +37,6 @@ module EM::Rserve
       def error
         ((command & ~Constants::RESP_ERR) >> 24) & 0xff
       end
-
-      #     -> self.for_message
-      #     -> prepare_message
     end
   end
 end

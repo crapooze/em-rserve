@@ -8,13 +8,21 @@ module EM::Rserve
       include Constants
       include R
 
+      LARGE_SIZE_TRESHOLD = 0xfffff0 
+
       def parameter_head(type, len)
-        #TODO: support long parameter, type: 0xbf + DT_LARGE if len overflows
-        (type & 0x000000ff) | ((len << 8) & 0xffffff00)
+        if len > LARGE_SIZE_TRESHOLD
+          head = (type & 0x000000bf) | ((len << 8) & 0xffffff00) | DT_LARGE
+          extra_len_bits = (len & ~0xffffff) >> 24
+          [head, extra_len_bits].pack('VV')
+        else
+          head = (type & 0x000000bf) | ((len << 8) & 0xffffff00)
+          [head].pack('V')
+        end
       end
 
       def pack_parameter(type, len, val, rule)
-        [parameter_head(type, len), val].flatten.pack('V'+rule)
+        [parameter_head(type, len), val].flatten.pack('a*'+rule)
       end
 
       def encode_parameter(param, type=nil)
@@ -76,9 +84,9 @@ module EM::Rserve
       end
 
       def head_parameter(head)
-        type = head & 0x000000bf 
+        type  = head & 0x000000bf 
         large = (head & DT_LARGE) > 0
-        len  = (head & 0xffffff00) >> 8
+        len   = (head & 0xffffff00) >> 8
         [type, len, large]
       end
 
@@ -112,7 +120,10 @@ module EM::Rserve
         until buffer.empty? do
           head, buffer = buffer.unpack('Va*')
           type, len, large = head_parameter(head)
-          raise NotImplementedError, "too long QAP1 message" if large
+          if large
+            long_len, buffer = buffer.unpack('Va*')
+            len = long_len << 24 | len
+          end
           if buffer.size < len
             raise RuntimeError, "cannot decode #{buffer} (not enough bytes)"
           end

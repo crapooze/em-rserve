@@ -4,7 +4,7 @@
   - Table
 * RESP_ERR as a flag and not an OR-ed value
   -> will need to modify Header#error? and Header#error
-* support for long (>8M) messages
+* factorize headers parsing/dumping for SEXP and QAP1 parameters
 * login command
   support crypt and store salt from connection setup
 * better attach method

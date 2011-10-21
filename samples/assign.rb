@@ -10,13 +10,25 @@ class DevelConnection < EM::Rserve::Connection
   def dump_sexp(msg)
     raise unless msg.parameters.size == 1
     root = msg.parameters.first
-    pp root
     val =  EM::Rserve::R::RtoRuby::Translator.r_to_ruby(root)
-    p val
+    if val.respond_to? :size
+      if val.size > 100
+        puts "too large to dump: #{val.class}"
+      else 
+        pp root
+        p val
+      end
+    else
+      pp root
+      p val
+    end
   end
 
   def dump_r_val(str) 
     r_eval(str) do |req|
+      req.errback do |msg|
+        puts "could not dump"
+      end
       req.callback do |msg|
         dump_sexp msg
       end
@@ -38,11 +50,16 @@ class DevelConnection < EM::Rserve::Connection
   def loop_parse_r_val(str)
     r_eval(str) do |req|
       req.callback do |msg|
+        puts "callback> #{str}"
         raise unless msg.parameters.size == 1
         root = msg.parameters.first
-        new_root = EM::Rserve::R::Sexp.parse(root.dump_sexp)
+        puts 'got parsed SEXP parameter'
         val1 =  EM::Rserve::R::RtoRuby::Translator.r_to_ruby(root)
+        puts 'translated SEXP'
+        new_root = EM::Rserve::R::Sexp.parse(root.dump_sexp)
+        puts 'dumped SEXP'
         val2 =  EM::Rserve::R::RtoRuby::Translator.r_to_ruby(new_root)
+        puts 're-translated dumped SEXP'
         if val1 == val2
           p "ok: #{str}" 
         else
@@ -155,8 +172,14 @@ class DevelConnection < EM::Rserve::Connection
   def ready
     puts "ready"
 
-    loop_parse_r_val '1+1i'
-    loop_parse_r_val 'c(1:1000)'
+    #do_array_int((1 .. 10).to_a)
+    #do_array_int((1 .. 10000000).to_a)
+    loop_parse_r_val 'c(1:5)'
+    loop_parse_r_val "c(1:10000000)"
+    loop_parse_r_val 'table(c(1,2,3,2,2))'
+    loop_parse_r_val "data.frame(foo=c(1:8), bar=seq(100,800,100))"
+    loop_parse_r_val "data.frame(foo=c(1,2,3), bar=c(NA,FALSE,TRUE), row.names=c('foo','bar','baz'))" 
+
 
     return
 
@@ -172,10 +195,6 @@ class DevelConnection < EM::Rserve::Connection
 
     return
 
-    loop_parse_r_val 'c(1:5)'
-    loop_parse_r_val 'table(c(1,2,3,2,2))'
-    loop_parse_r_val "data.frame(foo=c(1:8), bar=seq(100,800,100))"
-    loop_parse_r_val "data.frame(foo=c(1,2,3), bar=c(NA,FALSE,TRUE), row.names=c('foo','bar','baz'))" 
     
     #do_int
     #do_double

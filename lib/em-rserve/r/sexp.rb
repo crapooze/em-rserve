@@ -57,6 +57,8 @@ module EM::Rserve
           end
         end
 
+        LARGE_SIZE_TRESHOLD = 0xfffff0 #recommandation
+
         def dump_sexp
           body = dumped_value_with_attribute
           children_data = children.map do |n|
@@ -64,8 +66,9 @@ module EM::Rserve
           end.join('')
           size = body.size + children_data.size
           flags = {:large => false, :attr => attribute && true}
+          flags[:large] = true if size > LARGE_SIZE_TRESHOLD
           head = self.class.parameter_head(self.class.code, flags, size)
-          [head, body + children_data].pack('Va*')
+          [head, body + children_data].join('')
         end
 
         def dumped_value_with_attribute
@@ -84,10 +87,16 @@ module EM::Rserve
           head_bits  = type & 0x3f #high bits are for flags
           len_bits   = (len & 0xffffff) << 8
           flags_bits = 0
-          flags_bits |= 0x40 if flags[:large]
           flags_bits |= 0x80 if flags[:attr]
-          ret = head_bits | len_bits | flags_bits
-          ret
+          if flags[:large]
+            flags_bits |= 0x40 
+            head = head_bits | len_bits | flags_bits
+            extra_len_bits = (len & ~0xffffff) >> 24
+            [head, extra_len_bits].pack('VV')
+          else
+            head = head_bits | len_bits | flags_bits
+            [head].pack('V')
+          end
         end
 
         class << self
@@ -392,6 +401,10 @@ module EM::Rserve
       def self.decode_nodes(buffer)
         head, buffer = buffer.unpack('Va*')
         type, flags, len = head_parameter(head)
+        if flags[:large]
+          long_len, buffer = buffer.unpack('Va*')
+          len = long_len << 24 | len
+        end
 
         # Cuts the buffer at the correct length and give away the remainder
         buffer, remainder = buffer.unpack("a#{len}a*")
