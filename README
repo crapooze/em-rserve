@@ -15,7 +15,6 @@ So far it can:
 - handle pools of connections with ruby fibers
 
 Limitations:
-- large QAP1 messages (>8MB) are not supported, this limitation means that you cannot transfer large object directly over RServe protocol
 - no support for the connections with a password. somehow, password without encryption defeats the purpose. hence, if you need a password, you should setup an SSH proxy instead
 
 Links:
