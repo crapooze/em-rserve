@@ -11,7 +11,7 @@ module EM::Rserve
       end
 
       def message_length
-        length #TODO: use length2
+        length | length2 << 32 
       end
 
       def body?
