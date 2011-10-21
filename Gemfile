@@ -1,4 +1,7 @@
 source "http://rubygems.org"
 
-# Specify your gem's dependencies in em-rserve.gemspec
-gemspec
+gem "eventmachine"
+
+group :development, :test do
+  gem "rspec"
+end
