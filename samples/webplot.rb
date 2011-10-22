@@ -12,8 +12,20 @@ get '/' do
 end
 
 helpers do
+  def backend
+    unless defined?(@@backend)
+      # shows how to use backend and servers in a round-robin, for people who want
+      # to build crazy clusters of RServes
+      servers = []
+      servers << EM::Rserve::DefaultBackend.new #this is a Backend object
+      servers << EM::Rserve::DefaultBackend.new.next #this is a Backend::Server object
+      @@backend = EM::Rserve::RoundRobinBackend.new(servers)
+    end
+    @@backend
+  end
+
   def pool
-    @@pool ||= EM::Rserve::Pooler.new 10
+    @@pool ||= EM::Rserve::Pooler.new(10, EM::Rserve::FiberedConnection, backend)
   end
 
   def plot(template, system=:erb)
