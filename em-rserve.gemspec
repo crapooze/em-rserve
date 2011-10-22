@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version     = EM::Rserve::VERSION
   s.authors     = ["crapooze"]
   s.email       = ["crapooze@gmail.com"]
-  s.homepage    = ""
+  s.homepage    = "https://github.com/crapooze/em-rserve"
   s.summary     = %q{An EventMachine client for RServe}
   s.description = %q{Do evented stats with EventMachine and RServe}
 
