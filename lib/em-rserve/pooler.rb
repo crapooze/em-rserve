@@ -39,7 +39,6 @@ module EM::Rserve
       @size = size
       @connection_class = klass
       @backend = backend
-      fill size
     end
 
     # True if there are no connections left in the pool
